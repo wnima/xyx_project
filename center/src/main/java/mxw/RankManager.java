@@ -50,6 +50,9 @@ public class RankManager {
 
 			while (it.hasNext()) {
 				Entry<Long, Integer> b = it.next();
+				if (b.getKey() == 0) {
+					continue;
+				}
 				UserRank userRank = new UserRank(b.getKey(), b.getValue());
 				Optional<Chapter> cp = combatMap.get(b.getKey());
 				if (cp.isPresent()) {

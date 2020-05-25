@@ -2,10 +2,13 @@ package data.provider;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,8 +183,9 @@ public class ChapterProvider extends DataProvider<Chapter> {
 		chapter.setStarLv(starLv);
 		chapter.setPassTime(passTime);
 		chapter.setCreateTime(createTime);
-		record.put(userId, combatId, chapter);
 		insert(chapter);
+		record.put(userId, combatId, chapter);
+		putBean(chapter);
 	}
 
 	public boolean contains(long userId, int combatId) {
