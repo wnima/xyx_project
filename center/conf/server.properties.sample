@@ -1,0 +1,13 @@
+center.port=10026
+centerHost=192.168.1.88:9081
+http.port=9081
+redis.host=192.168.1.179
+redis.port=8500
+redis.passwd=123456
+gameGroupId = 4
+video_game.driver=com.mysql.jdbc.Driver
+video_game.url=jdbc:mysql://127.0.0.1:3306/sdyl?useUnicode=true&characterEncoding=utf-8&useSSL=false
+video_game.user=root
+video_game.password=12344
+video_game.minConnections=10
+video_game.maxConnections=20
