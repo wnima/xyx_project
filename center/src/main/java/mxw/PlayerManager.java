@@ -118,6 +118,10 @@ public class PlayerManager {
 
 	public UserData getPlayerById(long playerId) {
 		UserData userData = playerMap.get(playerId);
+		if (userData == null) {
+			logger.info("getPlayerById isNull playerId:{}", playerId);
+			return null;
+		}
 		userData.resetPower();
 		return userData;
 	}
@@ -137,8 +141,7 @@ public class PlayerManager {
 		// 添加角色
 		BagProvider.getInst().addProp(userData, 1, 1, 3);
 		BagProvider.getInst().addProp(userData, 700, 5, 1);
-		// 开启第一章
-		ChapterManager.getInst().initIfNoChapter(userData.getUser().getGameType(),userId, 1, 0);
+		ChapterManager.getInst().initChapterFrist(userId, 1);
 		return userData;
 	}
 

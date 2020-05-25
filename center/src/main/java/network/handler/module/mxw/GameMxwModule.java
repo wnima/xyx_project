@@ -134,7 +134,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 		ConfSetting setting = ConfSettingProvider.getInst().get("max_chapter");
 		builder.setMaxChapter(setting.getValue().getInt("chapterId"));
 		Map<Integer, Bag> props = BagProvider.getInst().getPropList(playerId);
-		for(Entry<Integer, Bag> item:props.entrySet()) {
+		for (Entry<Integer, Bag> item : props.entrySet()) {
 			Builder itemBuilder = UserProps.newBuilder().setPropsId(item.getKey()).setPropsNum(item.getValue().getPropNum());
 			builder.addWeapon(itemBuilder);
 		}
@@ -168,7 +168,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 		}
 
 		/**** 关卡信息 ****/
-		List<ConfChapter> sections = ConfChapterProvider.getInst().getChapter(player.getUser().getGameType(),req.getChapter());
+		List<ConfChapter> sections = ConfChapterProvider.getInst().getChapter(player.getUser().getGameType(), req.getChapter());
 		sections.forEach(e -> {
 			Chapter rank = ChapterProvider.getInst().getRecord(playerId, e.getId());
 			if (rank != null) {
@@ -189,7 +189,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 		if (player == null) {
 			return;
 		}
-		ConfChapter conf = ConfChapterProvider.getInst().getSection(player.getUser().getGameType(),req.getChapter(), req.getSection());
+		ConfChapter conf = ConfChapterProvider.getInst().getSection(player.getUser().getGameType(), req.getChapter(), req.getSection());
 		if (conf == null) {
 			logger.info("actionSectionStart conf isNull");
 			return;
@@ -202,12 +202,13 @@ public class GameMxwModule implements IModuleMessageHandler {
 
 		player.reducePower(1);// 扣除1点体力
 
-		int roleId = ChapterManager.getInst().getChapterId(playerId);
 		SectionStartRsp.Builder builder = SectionStartRsp.newBuilder();
 		builder.setGold(player.getUser().getGold());
 		builder.setCoin(player.getUser().getCoin());
-		builder.setRoldId(roleId);
+		builder.setRoldId(BagProvider.getInst().getPortrait(playerId));
 		player.setCombatId(conf.getId());
+
+		logger.info("actionSectionRsp:{}", builder.build());
 
 		MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_SECTION_START, builder.build());
 	}
@@ -221,23 +222,43 @@ public class GameMxwModule implements IModuleMessageHandler {
 			return;
 		}
 
-		ConfChapter confChapter = ConfChapterProvider.getInst().getConfigById(player.getCombatId());
-		if (confChapter == null) {
-			logger.info("关卡信息错误", req);
+		ConfChapter conf = ConfChapterProvider.getInst().getConfigById(player.getCombatId());
+		if (conf == null) {
+			logger.info("关卡信息错误 combatId:{}", player.getCombatId());
 			return;
 		}
 
 		int starLv = req.getStarLv();
 		starLv = starLv > 3 ? 3 : starLv;
 		long passTime = req.getPassTime();
-		Chapter chapter = ChapterProvider.getInst().getRecord(playerId, confChapter.getId());
-		if (passTime > 0) {
-			ChapterProvider.getInst().updateRecord(playerId, confChapter.getId(), starLv, passTime, DateUtil.getSecondTime());
-			ChapterManager.getInst().initIfNoChapter(player.getUser().getGameType(),playerId, confChapter.getChapterId(), confChapter.getSectionId());
+
+		int enterNext = 2;
+		Chapter chapter = ChapterProvider.getInst().getRecord(playerId, conf.getId());
+		if (chapter == null) {
+			logger.info("关卡记录不存在 combatId:{}", conf.getId());
+		}
+		if (passTime > 0) {// 通关
+			ChapterProvider.getInst().updateRecord(playerId, conf.getId(), starLv, passTime, DateUtil.getSecondTime());
+			if (conf.getSectionId() != 8) {// 直接新关卡
+				enterNext = 1;
+				ChapterProvider.getInst().addChapter(playerId, conf.getId() + 1, 0, 0, 0);
+			}
+
+			// 检测是否通关了本章节,如果通关了,则开启下一章节
+			boolean isOpen = ChapterManager.getInst().isPassChapter(playerId, conf.getChapterId(), conf.getSectionId());
+			if (isOpen) {
+				enterNext = 1;
+				ConfChapter newChapter = ConfChapterProvider.getInst().getSection(player.getGame(), conf.getChapterId() + 1, 1);
+				if (newChapter != null) {
+					ChapterProvider.getInst().addChapter(playerId, newChapter.getId(), 0, 0, 0);
+					logger.info("添加新的章节playerId:{} combatId:{}", playerId, newChapter.getId());
+				}
+			}
 		}
 
 		SectionEndRsp.Builder builder = SectionEndRsp.newBuilder();
 		builder.setPassTime(chapter.getPassTime());
+		builder.setEnterNextPass(enterNext);
 
 		logger.info("actionSectionEnd:{}", builder.build());
 		MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_SECTION_END, builder.build());
@@ -506,7 +527,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 			return;
 		}
 
-		ConfChapter confChapter = ConfChapterProvider.getInst().getSection(player.getUser().getGameType(),req.getChapter(), req.getSection());
+		ConfChapter confChapter = ConfChapterProvider.getInst().getSection(player.getUser().getGameType(), req.getChapter(), req.getSection());
 		if (confChapter == null) {
 			logger.info("关卡信息错误", req);
 			return;
@@ -619,7 +640,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 			builder.addProps(b.build());
 		}
 
-		logger.info("actionGetPropListRsp:{}", builder.build());
+		// logger.info("actionGetPropListRsp:{}", builder.build());
 		MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_PROP_LIST, builder.build());
 	}
 
@@ -720,12 +741,20 @@ public class GameMxwModule implements IModuleMessageHandler {
 		if (signId == -1) {
 			return;
 		}
+
+		ConfSign conf = ConfSignProvider.getInst().getConfigById(signId);
+		int propId = conf.getAwardList().get(0).get(0);
+		int propNum = conf.getAwardList().get(0).get(1);
+
 		boolean isSign = SignProvider.getInst().sign(playerId, signId, DateUtil.getToday());
 		if (isSign) {
-			ConfSign conf = ConfSignProvider.getInst().getConfigById(signId);
-			int propId = conf.getAwardList().get(0).get(0);
-			int propNum = conf.getAwardList().get(0).get(1);
-			BagProvider.getInst().addProp(player, propId, propNum, 1);
+			Bag bag = BagProvider.getInst().addProp(player, propId, propNum, 1);
+			GotPropRsp.Builder awardShow = GotPropRsp.newBuilder();
+			awardShow.setPropId(propId);
+			awardShow.setPropNum(bag.getPropNum());
+			awardShow.setPropAdd(propNum);
+			awardShow.setIsshowUi(true);
+			MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_GOT_PROP, awardShow.build());
 		}
 
 		for (ConfSign e : ConfSignProvider.getInst().getAllConfig()) {

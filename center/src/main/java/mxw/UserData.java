@@ -104,4 +104,8 @@ public class UserData {
 		}
 	}
 
+	public int getGame() {
+		return user.getGameType();
+	}
+
 }

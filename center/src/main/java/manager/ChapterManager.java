@@ -12,6 +12,8 @@ import config.provider.ConfChapterProvider;
 import data.bean.Chapter;
 import data.provider.ChapterProvider;
 import inject.BeanManager;
+import mxw.PlayerManager;
+import mxw.UserData;
 
 @Singleton
 public class ChapterManager {
@@ -37,32 +39,40 @@ public class ChapterManager {
 		}
 		return chapterId;
 	}
-	
-//	public void initChapterFrist(long playerId, int chapterId) {
-//		if (!ConfChapterProvider.getInst().isContain(chapterId)) {
-//			return;
-//		}
-//		ConfChapter conf = ConfChapterProvider.getInst().getSection(chapterId, 1);
-//		if (conf == null) {
-//			return;
-//		}
-//		ChapterProvider.getInst().addChapter(playerId, conf.getId(), 0, 0, 0);
-//	}
-//
-//	public boolean isPassChapter(long playerId, int chapterId, int sectionId) {
-//		int star = 0;
-//		boolean pass = true;
-//		List<ConfChapter> confList = ConfChapterProvider.getInst().getChapter(chapterId);
-//		for (ConfChapter e : confList) {
-//			Chapter chapter = ChapterProvider.getInst().getById(playerId, e.getId());
-//			if (chapter == null || chapter.getPassTime() == 0) {
-//				pass = false;
-//				break;
-//			}
-//			star += chapter.getStarLv();
-//		}
-//		return pass && star >= 16;
-//	}
+
+	/**
+	 * 初始化第一关
+	 * 
+	 * @param playerId
+	 * @param chapterId
+	 */
+	public void initChapterFrist(long playerId, int chapterId) {
+		if (!ConfChapterProvider.getInst().isContain(chapterId)) {
+			return;
+		}
+		UserData player = PlayerManager.getInst().getPlayerById(playerId);
+		ConfChapter conf = ConfChapterProvider.getInst().getSection(player.getUser().getGameType(), chapterId, 1);
+		if (conf == null) {
+			return;
+		}
+		ChapterProvider.getInst().addChapter(playerId, conf.getId(), 0, 0, 0);
+	}
+
+	public boolean isPassChapter(long playerId, int chapterId, int sectionId) {
+		int star = 0;
+		boolean pass = true;
+		UserData player = PlayerManager.getInst().getPlayerById(playerId);
+		List<ConfChapter> confList = ConfChapterProvider.getInst().getChapter(player.getGame(), chapterId);
+		for (ConfChapter e : confList) {
+			Chapter chapter = ChapterProvider.getInst().getById(playerId, e.getId());
+			if (chapter == null || chapter.getPassTime() == 0) {
+				pass = false;
+				break;
+			}
+			star += chapter.getStarLv();
+		}
+		return pass && star >= 16;
+	}
 
 	public boolean initIfNoChapter(int gameType, long playerId, int chapterId, int sectionId) {
 		if (!ConfChapterProvider.getInst().isContain(chapterId)) {
@@ -70,7 +80,7 @@ public class ChapterManager {
 		}
 		if (sectionId == 8) {// 最后一关
 			int starLv = 0;
-			List<ConfChapter> confList = ConfChapterProvider.getInst().getChapter(gameType,chapterId);
+			List<ConfChapter> confList = ConfChapterProvider.getInst().getChapter(gameType, chapterId);
 			for (ConfChapter e : confList) {
 				Chapter chapter = ChapterProvider.getInst().getById(playerId, e.getId());
 				if (chapter != null) {
@@ -81,7 +91,7 @@ public class ChapterManager {
 				return false;
 			}
 		}
-		ConfChapter conf = ConfChapterProvider.getInst().nextChapter(gameType,chapterId, sectionId);
+		ConfChapter conf = ConfChapterProvider.getInst().nextChapter(gameType, chapterId, sectionId);
 		if (conf == null) {
 			return false;
 		}
