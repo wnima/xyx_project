@@ -63,12 +63,12 @@ public class AccountModule implements IModuleMessageHandler {
 		String name = req.getName();
 		String pwd = req.getPw();
 		int gameType = req.getGameType();
-		
+
 		logger.info("actionLoginRq name:{} pwd:{}", name, pwd);
 		// 登陆返回
 		PBInterLoginRsp.Builder builder = PBInterLoginRsp.newBuilder();
 
-		UserData player = PlayerManager.getInst().getPlayerByAccountAndGameType(name,gameType);
+		UserData player = PlayerManager.getInst().getPlayerByAccount(name);
 		if (player != null) {
 			if (!player.getUser().getPwd().equals(pwd)) {// 密码错误
 				builder.setMsg("密码错误");
@@ -85,6 +85,7 @@ public class AccountModule implements IModuleMessageHandler {
 			player.setOnline(true);
 			player.setLogout(false);
 			player.setLogoutCrons(0);
+			player.getUser().setGameType(gameType);
 			MsgHelper.sendRequest(ioSession, RequestCode.INTERNAL_LOGIN_RSP, builder.build());
 			return;
 		} else {
@@ -92,7 +93,7 @@ public class AccountModule implements IModuleMessageHandler {
 				UserData load = null;
 				Map<String, Object> where = new HashMap<String, Object>();
 				where.put("account", name);
-				where.put("gameType", name);
+//				where.put("gameType", name);
 				List<ASObject> list = DataQueryResult.load("p_user", where);
 				String loginMsg = null;
 				if (list.isEmpty()) {// 直接创建账号
@@ -133,6 +134,7 @@ public class AccountModule implements IModuleMessageHandler {
 
 				load.setOnline(true);
 				load.setLogout(false);
+				load.getUser().setGameType(gameType);
 				MsgHelper.sendRequest(ioSession, RequestCode.INTERNAL_LOGIN_RSP, builder.build());
 				return null;
 			});
@@ -162,6 +164,7 @@ public class AccountModule implements IModuleMessageHandler {
 			player.setOnline(true);
 			player.setLogout(false);
 			player.setLogoutCrons(0);
+			player.getUser().setGameType(gameType);
 			MsgHelper.sendRequest(ioSession, RequestCode.INTERNAL_QQ_LOGIN_RSP, builder.build());
 			return;
 		} else {
@@ -174,7 +177,7 @@ public class AccountModule implements IModuleMessageHandler {
 				Map<String, Object> where = new HashMap<String, Object>();
 				where.put("platNo", req.getPlatNo());
 				where.put("platId", req.getPlatId());
-				where.put("gameType", gameType);
+//				where.put("gameType", gameType);
 				List<ASObject> list = DataQueryResult.load("p_user", where);
 				String loginMsg = null;
 				if (list.isEmpty()) {// 直接创建账号
@@ -207,6 +210,7 @@ public class AccountModule implements IModuleMessageHandler {
 					builder.setSessionId(req.getSessionId());
 					load.setOnline(true);
 					load.setLogout(false);
+					load.getUser().setGameType(gameType);
 				}
 
 				MsgHelper.sendRequest(ioSession, RequestCode.INTERNAL_QQ_LOGIN_RSP, builder.build());

@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import data.bean.User;
 import data.provider.BagProvider;
 import manager.ChapterManager;
-import util.Pair;
 
 //@Singleton
 public class PlayerManager {
@@ -22,7 +21,7 @@ public class PlayerManager {
 
 	private Map<Long, UserData> playerMap = new ConcurrentHashMap<>();
 	// account,userId
-	private Map<Pair<String, Integer>, Long> accountsAndGameType = new ConcurrentHashMap<>();
+	private Map<String, Long> accounts = new ConcurrentHashMap<>();
 	// platId,userId
 	private Map<String, Long> plats = new ConcurrentHashMap<>();
 
@@ -58,7 +57,7 @@ public class PlayerManager {
 		playerMap.put(userData.getPlayerId(), userData);
 
 		if (userData.getUser().getAccount() != null) {
-			accountsAndGameType.put(new Pair<String, Integer>(userData.getUser().getAccount(), userData.getUser().getGameType()), userData.getPlayerId());
+			accounts.put(userData.getUser().getAccount(), userData.getPlayerId());
 		}
 
 		if (userData.getUser().getPlatId() != null) {
@@ -99,10 +98,9 @@ public class PlayerManager {
 		return playerMap.get(playerId).isOnline();
 	}
 
-	public UserData getPlayerByAccountAndGameType(String account,int gameType) {
-		Pair<String, Integer> accountKey = new Pair<>(account, gameType);
-		if (accountsAndGameType.containsKey(accountKey)) {
-			long playerId = accountsAndGameType.get(accountKey);
+	public UserData getPlayerByAccount(String account) {
+		if (accounts.containsKey(account)) {
+			long playerId = accounts.get(account);
 			return getPlayerById(playerId);
 		}
 		return null;
