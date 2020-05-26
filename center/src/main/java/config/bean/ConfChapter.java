@@ -81,6 +81,10 @@ public class ConfChapter implements IConfigBean {
 		sb.append("power");
 		sb.append(":");
 		sb.append(power);
+		sb.append(",");
+		sb.append("gameType");
+		sb.append(":");
+		sb.append(gameTypeId);
 		return sb.toString();
 	}
 }

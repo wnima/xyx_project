@@ -69,7 +69,6 @@ public class ConfChapterProvider extends BaseProvider<ConfChapter> {
 				chapters.put(key, list);
 			}
 			list.add(e);
-
 			sections.put(key, e.getSectionId(), e);
 		});
 	}

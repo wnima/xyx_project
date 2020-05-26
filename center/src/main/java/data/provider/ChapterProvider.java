@@ -172,10 +172,10 @@ public class ChapterProvider extends DataProvider<Chapter> {
 		}
 	}
 
-	public void addChapter(long userId, int combatId, int starLv, long passTime, int createTime) {
+	public Chapter addChapter(long userId, int combatId, int starLv, long passTime, int createTime) {
 		Chapter chapter = record.get(userId, combatId);
 		if (chapter != null) {
-			return;
+			return chapter;
 		}
 		chapter = new Chapter();
 		chapter.setUserId(userId);
@@ -186,6 +186,7 @@ public class ChapterProvider extends DataProvider<Chapter> {
 		insert(chapter);
 		record.put(userId, combatId, chapter);
 		putBean(chapter);
+		return chapter;
 	}
 
 	public boolean contains(long userId, int combatId) {

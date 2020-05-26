@@ -8,22 +8,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collector;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import com.google.inject.Singleton;
 
-import config.bean.ConfChapter;
-import config.provider.ConfChapterProvider;
-import config.provider.ConfGameTypeProvider;
 import data.bean.Chapter;
 import data.provider.ChapterProvider;
 
 @Singleton
 public class RankManager {
+
+	private ReadWriteLock lock = new ReentrantReadWriteLock();
 	// 总排行
-	Map<Integer, List<UserRank>> rankMap = new ConcurrentHashMap<Integer, List<UserRank>>();
+	List<UserRank> rankList = new ArrayList<UserRank>();
 
 	static RankManager inst = new RankManager();
 
@@ -31,25 +30,23 @@ public class RankManager {
 		return inst;
 	}
 
-	public List<UserRank> getRankList(int gameType) {
-		return rankMap.get(gameType);
+	public List<UserRank> getRankList() {
+		try {
+			lock.readLock().lock();
+			return rankList;
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	public void calc() {
-		rankMap.clear();
-		Map<Integer, String> gameTypes = ConfGameTypeProvider.getInst().getTypes();
-		for(Entry<Integer, String> type:gameTypes.entrySet()) {
-			List<UserRank> rankList = new ArrayList<UserRank>();
-			rankMap.put(type.getKey(),rankList);
-			List<Chapter> passList = ChapterProvider.getInst().getAllBean().stream().filter((e)->{
-				ConfChapter chapter = ConfChapterProvider.getInst().getConfigById(e.getCombatId());
-				return chapter.getGameTypeId() == type.getKey();
-			}).collect(Collectors.toList());
-			
-			Map<Long, Integer> starLvMap = passList.stream().collect(Collectors.groupingBy(Chapter::getUserId, Collectors.summingInt(Chapter::getStarLv)));
-			Map<Long, Optional<Chapter>> combatMap = passList.stream().collect(Collectors.groupingBy(Chapter::getUserId, Collectors.maxBy(Comparator.comparing(Chapter::getCombatId))));
-			Iterator<Entry<Long, Integer>> it = starLvMap.entrySet().iterator();
-
+		List<Chapter> passList = ChapterProvider.getInst().getAllBean();
+		Map<Long, Integer> starLvMap = passList.stream().collect(Collectors.groupingBy(Chapter::getUserId, Collectors.summingInt(Chapter::getStarLv)));
+		Map<Long, Optional<Chapter>> combatMap = passList.stream().collect(Collectors.groupingBy(Chapter::getUserId, Collectors.maxBy(Comparator.comparing(Chapter::getCombatId))));
+		Iterator<Entry<Long, Integer>> it = starLvMap.entrySet().iterator();
+		try {
+			lock.writeLock().lock();
+			rankList.clear();
 
 			while (it.hasNext()) {
 				Entry<Long, Integer> b = it.next();
@@ -66,6 +63,8 @@ public class RankManager {
 				rankList.add(userRank);
 			}
 			Collections.sort(rankList, new ComparatorStar());
+		} finally {
+			lock.writeLock().unlock();
 		}
 	}
 

@@ -133,7 +133,7 @@ public class CenterServer extends BaseApp {
 	@Override
 	protected void registerExtraCronTask() {
 		logger.info("启动定时任务");
-		CenterActorManager.getLogicTimer().register(6000, 6000, () -> RankManager.getInst().calc(), CenterActorManager.getDbFlushActor(), "cleanDirty");
+		CenterActorManager.getLogicTimer().register(6000, 6000, () -> RankManager.getInst().calc(), CenterActorManager.getRankActor(), "cleanDirty");
 	}
 
 	public void initStaticConfig() {

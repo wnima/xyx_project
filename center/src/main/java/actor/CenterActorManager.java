@@ -22,6 +22,7 @@ public class CenterActorManager implements IActorManager {
 	private IActor lobbyActor = null;
 	private IActor loginActor = null;
 	private IActor deviceActor = null;
+	private IActor rankActor = null;
 
 	private ActorDispatcher dbActors = null;
 	private ActorDispatcher mailActors = null;
@@ -36,6 +37,7 @@ public class CenterActorManager implements IActorManager {
 		tokenActor.stopWhenEmpty();
 		loginActor.stopWhenEmpty();
 		deviceActor.stopWhenEmpty();
+		rankActor.stopWhenEmpty();
 		dbCheckActor.stopWhenEmpty();
 		dbFlushActor.stopWhenEmpty();
 		lobbyActor.stopWhenEmpty();
@@ -52,6 +54,7 @@ public class CenterActorManager implements IActorManager {
 		mailActors.waitForStop();
 		loginActor.waitForStop();
 		deviceActor.waitForStop();
+		rankActor.waitForStop();
 		dbLoadActors.waitForStop();
 		logicActors.waitForStop();
 		httpActors.waitForStop();
@@ -74,6 +77,7 @@ public class CenterActorManager implements IActorManager {
 		lobbyActor = new Actor("lobby");
 		loginActor = new Actor("loginActor");
 		deviceActor = new Actor("deviceActor");
+		rankActor = new Actor("rankActor");
 		if (!tokenActor.start()) {
 			return false;
 		}
@@ -90,6 +94,9 @@ public class CenterActorManager implements IActorManager {
 			return false;
 		}
 		if (!deviceActor.start()) {
+			return false;
+		}		
+		if (!rankActor.start()) {
 			return false;
 		}
 		dbActors = new ActorDispatcher(8, "db_save");
@@ -187,4 +194,7 @@ public class CenterActorManager implements IActorManager {
 		return getInst().tokenActor;
 	}
 
+	public static IActor getRankActor() {
+		return getInst().rankActor;
+	}
 }

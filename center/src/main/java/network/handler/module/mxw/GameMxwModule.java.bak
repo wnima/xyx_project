@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Singleton;
 import com.google.protobuf.MessageLite;
 
-import actor.CenterActorManager;
 import config.bean.ConfChapter;
 import config.bean.ConfSetting;
 import config.bean.ConfShop;
@@ -28,7 +27,6 @@ import data.provider.BagProvider;
 import data.provider.ChapterBoxProvider;
 import data.provider.ChapterProvider;
 import data.provider.SignProvider;
-import define.GameType;
 import define.MxwPropId;
 import define.ShopEnum;
 import inject.BeanManager;
@@ -239,8 +237,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 		if (chapter == null) {
 			logger.info("关卡记录不存在 combatId:{}", conf.getId());
 		}
-		
-		if (passTime > 0 && player.getGame() == GameType.MXW.getVal()) {// 冒險王通关
+		if (passTime > 0) {// 通关
 			ChapterProvider.getInst().updateRecord(playerId, conf.getId(), starLv, passTime, DateUtil.getSecondTime());
 			if (conf.getSectionId() != 8) {// 直接新关卡
 				enterNext = 1;
@@ -257,8 +254,6 @@ public class GameMxwModule implements IModuleMessageHandler {
 					logger.info("添加新的章节playerId:{} combatId:{}", playerId, newChapter.getId());
 				}
 			}
-		}else if(passTime > 0 && player.getGame() == GameType.RUN.getVal()) {
-			chapter = ChapterProvider.getInst().addChapter(playerId, conf.getId(), starLv, passTime, DateUtil.getSecondTime());
 		}
 
 		SectionEndRsp.Builder builder = SectionEndRsp.newBuilder();
@@ -277,115 +272,57 @@ public class GameMxwModule implements IModuleMessageHandler {
 		if (player == null) {
 			return;
 		}
-		CenterActorManager.getRankActor().put(()->{
-			RankRsp.Builder builder = RankRsp.newBuilder();
-			List<UserRank> rankList = RankManager.getInst().getRankList(player.getUser().getGameType());
-
-			int i = 1;
-			int rank = 0;
-			int chapterId = 0;
-			int sectionId = 0;
-			
-			switch (GameType.getByVal(player.getUser().getGameType())) {
-			case MXW:
-				int starLv = 0;
-				for (UserRank e : rankList) {
-					UserData user = PlayerManager.getInst().getPlayerById(e.getUserId());
-//					if (user.getUser().getPlatProtrait() == null) {// 未授权则直接跳过
-//						continue;
-//					}
-					ConfChapter conf = ConfChapterProvider.getInst().getConfigById(e.getCombatId());
-					if (conf == null) {
-						continue;
-					}
-					if (i > 50) {// 不能超过50个
-						break;
-					}
-					if (user != null) {
-						if (e.getUserId() == playerId) {
-							rank = i;
-							chapterId = conf.getChapterId();
-							sectionId = conf.getSectionId();
-							starLv = e.getStarLv();
-						}
-						String userName = user.getUser().getUserName() == null ? "" : user.getUser().getUserName();
-						String protrait = user.getUser().getPlatProtrait() == null ? "" : user.getUser().getPlatProtrait();
-						builder.addRanks(PBHelper.crateRankPB(i++, userName, protrait, conf.getChapterId(), conf.getSectionId(), e.getStarLv()));
-					}
-				}
-
-				if (rank == 0) {
-					Optional<UserRank> opt = rankList.stream().filter(e -> e.getUserId() == playerId).findFirst();
-					if (opt.isPresent()) {
-						ConfChapter conf = ConfChapterProvider.getInst().getConfigById(opt.get().getCombatId());
-						chapterId = conf.getChapterId();
-						sectionId = conf.getSectionId();
-						starLv = opt.get().getStarLv();
-						rank = rankList.indexOf(opt.get()) + 1;
-					}
-				}
-
-				builder.setMyRank(rank);
-				builder.setMyName(player.getUser().getUserName() == null ? "" : player.getUser().getUserName());
-				builder.setMyPortrait(player.getUser().getPlatProtrait() == null ? "" : player.getUser().getPlatProtrait());
-				builder.setMyProcess(chapterId + "-" + sectionId);
-				builder.setMyValue(starLv);
-
-				logger.info("actionRank rsp:{}", builder.build());
-				MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_RANK, builder.build());
-				break;
-			case RUN:
-				int distance = 0;
-				for (UserRank e : rankList) {
-					UserData user = PlayerManager.getInst().getPlayerById(e.getUserId());
-//					if (user.getUser().getPlatProtrait() == null) {// 未授权则直接跳过
-//						continue;
-//					}
-					ConfChapter conf = ConfChapterProvider.getInst().getConfigById(e.getCombatId());
-					if (conf == null) {
-						continue;
-					}
-					if (i > 50) {// 不能超过50个
-						break;
-					}
-					if (user != null) {
-						if (e.getUserId() == playerId) {
-							rank = i;
-							chapterId = conf.getChapterId();
-							sectionId = conf.getSectionId();
-							distance = (int) e.getPassTime();
-						}
-						String userName = user.getUser().getUserName() == null ? "" : user.getUser().getUserName();
-						String protrait = user.getUser().getPlatProtrait() == null ? "" : user.getUser().getPlatProtrait();
-						builder.addRanks(PBHelper.crateRankPB(i++, userName, protrait, conf.getChapterId(), conf.getSectionId(), (int)e.getPassTime()));
-					}
-				}
-				if (rank == 0) {
-					Optional<UserRank> opt = rankList.stream().filter(e -> e.getUserId() == playerId).findFirst();
-					if (opt.isPresent()) {
-						ConfChapter conf = ConfChapterProvider.getInst().getConfigById(opt.get().getCombatId());
-						chapterId = conf.getChapterId();
-						sectionId = conf.getSectionId();
-						distance = (int)opt.get().getPassTime();
-						rank = rankList.indexOf(opt.get()) + 1;
-					}
-				}
-
-				builder.setMyRank(rank);
-				builder.setMyName(player.getUser().getUserName() == null ? "" : player.getUser().getUserName());
-				builder.setMyPortrait(player.getUser().getPlatProtrait() == null ? "" : player.getUser().getPlatProtrait());
-				builder.setMyProcess(chapterId + "-" + sectionId);
-				builder.setMyValue(distance);
-
-				logger.info("actionRank rsp:{}", builder.build());
-				MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_RANK, builder.build());
-				break;
-
-			default:
+		RankRsp.Builder builder = RankRsp.newBuilder();
+		List<UserRank> rankList = RankManager.getInst().getRankList();
+		int i = 1;
+		int rank = 0;
+		int chapterId = 0;
+		int sectionId = 0;
+		int starLv = 0;
+		for (UserRank e : rankList) {
+			UserData user = PlayerManager.getInst().getPlayerById(e.getUserId());
+//			if (user.getUser().getPlatProtrait() == null) {// 未授权则直接跳过
+//				continue;
+//			}
+			ConfChapter conf = ConfChapterProvider.getInst().getConfigById(e.getCombatId());
+			if (conf == null) {
+				continue;
+			}
+			if (i > 50) {// 不能超过50个
 				break;
 			}
-			return null;
-		});
+			if (user != null) {
+				if (e.getUserId() == playerId) {
+					rank = i;
+					chapterId = conf.getChapterId();
+					sectionId = conf.getSectionId();
+					starLv = e.getStarLv();
+				}
+				String userName = user.getUser().getUserName() == null ? "" : user.getUser().getUserName();
+				String protrait = user.getUser().getPlatProtrait() == null ? "" : user.getUser().getPlatProtrait();
+				builder.addRanks(PBHelper.crateRankPB(i++, userName, protrait, conf.getChapterId(), conf.getSectionId(), e.getStarLv()));
+			}
+		}
+
+		if (rank == 0) {
+			Optional<UserRank> opt = rankList.stream().filter(e -> e.getUserId() == playerId).findFirst();
+			if (opt.isPresent()) {
+				ConfChapter conf = ConfChapterProvider.getInst().getConfigById(opt.get().getCombatId());
+				chapterId = conf.getChapterId();
+				sectionId = conf.getSectionId();
+				starLv = opt.get().getStarLv();
+				rank = rankList.indexOf(opt.get()) + 1;
+			}
+		}
+
+		builder.setMyRank(rank);
+		builder.setMyName(player.getUser().getUserName() == null ? "" : player.getUser().getUserName());
+		builder.setMyPortrait(player.getUser().getPlatProtrait() == null ? "" : player.getUser().getPlatProtrait());
+		builder.setMyProcess(chapterId + "-" + sectionId);
+		builder.setMyValue(starLv);
+
+		logger.info("actionRank rsp:{}", builder.build());
+		MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_RANK, builder.build());
 	}
 
 	private void actionShop(ChannelHandlerContext ctx, CocoPacket packet, AbstractHandlers.MessageHolder<MessageLite> msg) {
