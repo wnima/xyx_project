@@ -38,18 +38,18 @@ public class RankManager {
 	public void calc() {
 		rankMap.clear();
 		Map<Integer, String> gameTypes = ConfGameTypeProvider.getInst().getTypes();
-		for(Entry<Integer, String> type:gameTypes.entrySet()) {
+		for (Entry<Integer, String> type : gameTypes.entrySet()) {
 			List<UserRank> rankList = new ArrayList<UserRank>();
-			rankMap.put(type.getKey(),rankList);
-			List<Chapter> passList = ChapterProvider.getInst().getAllBean().stream().filter((e)->{
+			rankMap.put(type.getKey(), rankList);
+
+			List<Chapter> passList = ChapterProvider.getInst().getAllBean().stream().filter((e) -> {
 				ConfChapter chapter = ConfChapterProvider.getInst().getConfigById(e.getCombatId());
-				return chapter.getGameTypeId() == type.getKey();
+				return chapter != null && chapter.getGameTypeId() == type.getKey();
 			}).collect(Collectors.toList());
-			
+
 			Map<Long, Integer> starLvMap = passList.stream().collect(Collectors.groupingBy(Chapter::getUserId, Collectors.summingInt(Chapter::getStarLv)));
 			Map<Long, Optional<Chapter>> combatMap = passList.stream().collect(Collectors.groupingBy(Chapter::getUserId, Collectors.maxBy(Comparator.comparing(Chapter::getCombatId))));
 			Iterator<Entry<Long, Integer>> it = starLvMap.entrySet().iterator();
-
 
 			while (it.hasNext()) {
 				Entry<Long, Integer> b = it.next();
