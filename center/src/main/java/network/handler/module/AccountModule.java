@@ -64,7 +64,7 @@ public class AccountModule implements IModuleMessageHandler {
 		String pwd = req.getPw();
 		int gameType = req.getGameType();
 
-		logger.info("actionLoginRq name:{} pwd:{}", name, pwd);
+		logger.info("actionLoginRq name:{} pwd:{} game:{}", name, pwd, gameType);
 		// 登陆返回
 		PBInterLoginRsp.Builder builder = PBInterLoginRsp.newBuilder();
 

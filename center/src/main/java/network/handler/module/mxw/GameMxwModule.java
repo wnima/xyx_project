@@ -123,7 +123,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 			return;
 		}
 		UserReq req = msg.get();
-		logger.info("actionUse playerId:{} req:{}", playerId, req);
+		logger.info("actionUse playerId:{} game:{}", playerId, player.getGame());
 		UserRsp.Builder builder = UserRsp.newBuilder();
 		builder.setUserId(playerId);
 		builder.setUserName(player.getUser().getUserName() == null ? "" : player.getUser().getUserName());
@@ -140,6 +140,21 @@ public class GameMxwModule implements IModuleMessageHandler {
 			Builder itemBuilder = UserProps.newBuilder().setPropsId(item.getKey()).setPropsNum(item.getValue().getPropNum());
 			builder.addWeapon(itemBuilder);
 		}
+
+		// 血瓶
+		if (!props.containsKey(MxwPropId.BLOOD_BOX)) {
+			Builder itemBuilder = UserProps.newBuilder().setPropsId(MxwPropId.BLOOD_BOX).setPropsNum(0);
+			builder.addWeapon(itemBuilder);
+		}
+
+		// 武器包
+		if (!props.containsKey(MxwPropId.WEAPON_BAG)) {
+			Builder itemBuilder = UserProps.newBuilder().setPropsId(MxwPropId.WEAPON_BAG).setPropsNum(0);
+			builder.addWeapon(itemBuilder);
+		}
+
+		logger.info("UserRsp playerId:{} chapter:{}", playerId, ChapterManager.getInst().getChapterId(playerId));
+
 		MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_USER, builder.build());
 	}
 
@@ -150,12 +165,19 @@ public class GameMxwModule implements IModuleMessageHandler {
 			return;
 		}
 		ChapterReq req = msg.get();
-		logger.info("actionChapter playerId:{} req:{}", playerId, req);
+		logger.info("actionChapter playerId:{} game:{} chapter:{}", playerId, player.getGame(), req.getChapter());
 
 		int chapterId = req.getChapter();
 
 		ChapterRsp.Builder builder = ChapterRsp.newBuilder();
 		builder.setChapter(req.getChapter());
+
+		if (player.getGame() == 2) {
+			builder.setChapter(0);
+			logger.info("actionChapter playerId:{} game:{} chatper:{}", playerId, player.getGame(), 0);
+			MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_CHAPTER, builder.build());
+			return;
+		}
 
 		/**** 宝箱信息 ****/
 		ChapterBox chapBox = ChapterBoxProvider.getInst().getById(playerId, chapterId);
@@ -179,7 +201,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 				builder.addSections(PBHelper.createSectionPB(e.getSectionId(), false, 0));
 			}
 		});
-		logger.info("actionChapter rsp:{}", builder.build());
+		logger.info("actionChapter playerId:{} game:{} chatper:{}", playerId, player.getGame(), chapterId);
 		MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_CHAPTER, builder.build());
 	}
 
@@ -191,10 +213,16 @@ public class GameMxwModule implements IModuleMessageHandler {
 		if (player == null) {
 			return;
 		}
-		ConfChapter conf = ConfChapterProvider.getInst().getSection(player.getUser().getGameType(), req.getChapter(), req.getSection());
-		if (conf == null) {
-			logger.info("actionSectionStart conf isNull");
-			return;
+
+		if (player.getGame() == 1) {
+			ConfChapter conf = ConfChapterProvider.getInst().getSection(player.getUser().getGameType(), req.getChapter(), req.getSection());
+			if (conf == null) {
+				logger.info("actionSectionStart conf isNull");
+				return;
+			}
+			player.setCombatId(conf.getId());
+		} else {
+			player.setCombatId(65);
 		}
 
 		if (player.getUser().getPower() < 1) {
@@ -203,15 +231,11 @@ public class GameMxwModule implements IModuleMessageHandler {
 		}
 
 		player.reducePower(1);// 扣除1点体力
-
 		SectionStartRsp.Builder builder = SectionStartRsp.newBuilder();
 		builder.setGold(player.getUser().getGold());
 		builder.setCoin(player.getUser().getCoin());
 		builder.setRoldId(BagProvider.getInst().getPortrait(playerId));
-		player.setCombatId(conf.getId());
-
 		logger.info("actionSectionRsp:{}", builder.build());
-
 		MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_SECTION_START, builder.build());
 	}
 
@@ -221,6 +245,15 @@ public class GameMxwModule implements IModuleMessageHandler {
 		logger.info("actionSectionEnd playerId:{} req:{}", playerId, req);
 		UserData player = PlayerManager.getInst().getPlayerById(playerId);
 		if (player == null) {
+			return;
+		}
+
+		if (player.getGame() == 2) {// 无尽模式
+			SectionEndRsp.Builder builder = SectionEndRsp.newBuilder();
+			builder.setPassTime(req.getPassTime());
+			builder.setEnterNextPass(1);
+			logger.info("actionSectionEnd:{}", builder.build());
+			MsgHelper.sendResponse(ctx, playerId, ResponseCode.MXW_SECTION_END, builder.build());
 			return;
 		}
 
@@ -239,7 +272,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 		if (chapter == null) {
 			logger.info("关卡记录不存在 combatId:{}", conf.getId());
 		}
-		
+
 		if (passTime > 0 && player.getGame() == GameType.MXW.getVal()) {// 冒險王通关
 			ChapterProvider.getInst().updateRecord(playerId, conf.getId(), starLv, passTime, DateUtil.getSecondTime());
 			if (conf.getSectionId() != 8) {// 直接新关卡
@@ -257,7 +290,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 					logger.info("添加新的章节playerId:{} combatId:{}", playerId, newChapter.getId());
 				}
 			}
-		}else if(passTime > 0 && player.getGame() == GameType.RUN.getVal()) {
+		} else if (passTime > 0 && player.getGame() == GameType.RUN.getVal()) {
 			chapter = ChapterProvider.getInst().addChapter(playerId, conf.getId(), starLv, passTime, DateUtil.getSecondTime());
 		}
 
@@ -277,7 +310,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 		if (player == null) {
 			return;
 		}
-		CenterActorManager.getRankActor().put(()->{
+		CenterActorManager.getRankActor().put(() -> {
 			RankRsp.Builder builder = RankRsp.newBuilder();
 			List<UserRank> rankList = RankManager.getInst().getRankList(player.getUser().getGameType());
 
@@ -285,7 +318,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 			int rank = 0;
 			int chapterId = 0;
 			int sectionId = 0;
-			
+
 			switch (GameType.getByVal(player.getUser().getGameType())) {
 			case MXW:
 				int starLv = 0;
@@ -357,7 +390,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 						}
 						String userName = user.getUser().getUserName() == null ? "" : user.getUser().getUserName();
 						String protrait = user.getUser().getPlatProtrait() == null ? "" : user.getUser().getPlatProtrait();
-						builder.addRanks(PBHelper.crateRankPB(i++, userName, protrait, conf.getChapterId(), conf.getSectionId(), (int)e.getPassTime()));
+						builder.addRanks(PBHelper.crateRankPB(i++, userName, protrait, conf.getChapterId(), conf.getSectionId(), (int) e.getPassTime()));
 					}
 				}
 				if (rank == 0) {
@@ -366,7 +399,7 @@ public class GameMxwModule implements IModuleMessageHandler {
 						ConfChapter conf = ConfChapterProvider.getInst().getConfigById(opt.get().getCombatId());
 						chapterId = conf.getChapterId();
 						sectionId = conf.getSectionId();
-						distance = (int)opt.get().getPassTime();
+						distance = (int) opt.get().getPassTime();
 						rank = rankList.indexOf(opt.get()) + 1;
 					}
 				}
