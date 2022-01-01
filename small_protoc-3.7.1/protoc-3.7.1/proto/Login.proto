@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+option java_package = "pb";
+option java_outer_classname = "LoginPb";
+
+//@comment("登录请求",130,"LoginReq")
+message LoginReq{
+	string deviceNo = 1;
+	string name = 2;
+	string pw = 3;
+	int32 gameType = 4;
+}
+
+//@comment("登录返回",131,"LoginRsp")
+message LoginRsp {
+	// 返回提示消息
+    string msg = 1;
+	int64 userId = 2;
+	bool ban = 3;			
+	string banMsg = 4;
+	bool white = 5;
+}
+
+//@comment("QQ小游戏登录请求",132,"QQLoginReq")
+message QQLoginReq{
+	string accessToken = 1;
+			//游戏类型
+	int32 gameType = 2;
+}
+
+//@comment("QQ小游戏登录返回",133,"QQLoginRsp")
+message QQLoginRsp {
+	// 用户ID
+	int64 userId = 1;
+	// 是否封号
+	bool ban = 2;
+	// 封号信息
+	string banMsg = 3;
+	// 是否白名单
+	bool white = 4;
+
+}
+
+//@comment("微信登录请求",134,"WxLoginReq")
+message WxLoginReq{
+	string accessToken = 1;
+	int32 gameType = 2;
+}
+
+//@comment("微信登录请求",135,"WxLoginRep")
+message WxLoginRep {
+	// 用户ID
+	int64 userId = 1;
+	// 是否封号
+	bool ban = 2;
+	// 封号信息
+	string banMsg = 3;
+	// 是否白名单
+	bool white = 4;
+}
+
+
+
+
+
+
+
+
+
+
+

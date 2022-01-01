@@ -1,0 +1,328 @@
+syntax = "proto3";
+
+option java_package = "pb";
+option java_outer_classname = "MxwPb";
+
+//@msgtype("道具结构体","UserProps")
+message UserProps{
+	// 道具ID
+	int32 props_id = 1;
+	// 数量
+	int32 props_num = 2;
+}
+
+//@comment("请求用户信息",301,"UserReq")
+message UserReq{
+}
+
+//@comment("登录返回",302,"UserRsp")
+message UserRsp {
+    int64 userId = 1;
+    string userName = 2;
+	int32 portrait = 3;
+	int32 headFrame = 4;
+	int64 gold = 5;
+	int64 coin = 6;	
+	int32 power = 7;
+	int32 bullet = 8;
+	int32 chapter = 9;
+	int32 maxChapter = 10;
+	// 道具列表
+	repeated UserProps weapon = 11;
+}
+
+//@comment("请求章节信息",303,"ChapterReq")
+message ChapterReq{
+	int32 chapter = 1;					
+}
+
+//@msgtype("小关卡结构体","SectionPB")
+message SectionPB{
+	// 关卡ID
+	int32 id = 1;
+	// 是否通关
+	bool pass = 2;
+	// 几星通关
+	int32 starLv = 3;	
+}
+
+//@comment("关卡信息返回",304,"ChapterRsp")
+message ChapterRsp{
+	// 章节ID
+	int32 chapter = 1;
+	// 章节宝箱开启状态
+	repeated bool boxOpen = 2;	
+	// 小关卡列表
+	repeated SectionPB sections = 3;		
+}
+
+
+//@comment("开始游戏",305,"SectionStartReq")
+message SectionStartReq {
+	int32 chapter = 1;						
+	int32 section = 2;						
+}
+
+//@comment("开始游戏返回",306,"SectionStartRsp")
+message SectionStartRsp {
+	// 金币
+	int64 gold = 1;
+	// 砖石
+	int64 coin = 2;
+	// 角色
+	int32 roldId = 3;	
+}
+
+//@comment("结束游戏请求",307,"SectionEndReq")
+message SectionEndReq {
+	int32 starLv = 1;
+	int64 passTime = 2;	
+}
+
+
+//@comment("结束游戏返回",308,"SectionEndRsp")
+message SectionEndRsp {
+	// 最高的通关记录世界
+	int64 passTime = 1;
+	// 是否能进入下一关
+	int32 enterNextPass = 2;
+}
+
+//@comment("排行榜",309,"RankReq")
+message RankReq {
+}
+
+//@msgtype("榜单结构体","RankPB")
+message RankPB {
+	int32 rankId = 1;
+	string name = 2;
+	string portrait = 3;
+	string process = 4;
+	int32 rankValue = 5;
+}
+
+//@comment("排行榜",310,"RankRsp")
+message RankRsp {
+	int32 myRank = 1;
+	string myName = 2;
+	string myPortrait = 3;				
+	string myProcess = 4;					
+	int32 myValue = 5;
+	repeated RankPB ranks = 6;			
+}
+
+//@comment("商店信息",311,"ShopReq")
+message ShopReq {
+}
+
+//@msgtype("商品结构体","ShopPB")
+message ShopPB{
+	// 商品唯一ID
+	int32 shopId = 1;
+	// 道具ID
+	int32 itemId = 2;
+	// 物品数量
+	int32 itemNum = 3;
+	// 金币
+	int32 gold = 4;
+	// 点券
+	int32 coin = 5; 
+	// 1.已拥有 2.可购买 3.使用中
+	int32 state = 6;
+}
+
+//@comment("商店信息返回",312,"ShopRsp")
+message ShopRsp {
+	repeated ShopPB shops = 1;
+}
+
+//@comment("购买商品",313,"ShopBuyReq")
+message ShopBuyReq {
+	int32 shopId = 1;
+	int32 num = 2;
+}
+
+//@comment("购买商品返回",314,"ShopBuyRsp")
+message ShopBuyRsp {
+	// 商品唯一编号
+	int32 shopId = 1;
+	// 0.购买失败 1.已购买
+	int32 state = 2;
+	// 当前身上金币
+	int64 gold = 3;
+	// 当前身上点券
+	int64 coin = 4;
+	// 金钱是否足够
+	bool coinEnough = 5;
+	// 提示消息
+	string tip = 6;
+}
+
+//@comment("领取大厅宝箱奖励",315,"ChapterBoxReq")
+message ChapterBoxReq {
+	// 章节ID
+	int32 chapterId = 1;
+	// 领取第几个宝箱,第一个宝箱序列为1
+	int32 boxId = 2;
+}
+
+//@comment("领取大厅宝箱奖励返回",316,"ChapterBoxRsp")
+message ChapterBoxRsp {
+	// 获得金币
+	int64 gold = 1;
+	// 获得点券
+	int64 coin = 2;
+	// 宝箱状态
+	repeated bool boxes = 3;
+}
+
+
+//@comment("已购商品使用",317,"ShopUseReq")
+message ShopUseReq {
+	int32 shopId = 1;
+}
+
+//@comment("已购商品使用返回",318,"ShopUseRsp")
+message ShopUseRsp {
+	repeated ShopPB shops = 1;				
+}
+
+//@comment("幸运转盘",319,"LuckReq")
+message LuckReq {
+	int32 chapterId = 1;
+	int32 section = 2;
+	int32 propId = 3;
+	int32 proNum = 4;
+}
+
+//@comment("关卡完结返回信息",320,"LuckRsq")
+message LuckRsq {	
+}
+
+//@comment("关卡详细信息",321,"SectionDetailReq")
+message SectionDetailReq {
+	int32 chapter = 1;						
+	int32 section = 2;						
+}
+
+//@msgtype("关卡排行结构体","SectionRankPB")
+message SectionRankPB {
+	int32 rankId = 1;					
+	string portrait = 2;
+	string nick = 3;
+	int64 passTime = 4;				
+}
+
+//@comment("关卡详细信息",322,"SectionDetailRsp")
+message SectionDetailRsp {
+	int32 chapter = 1;						
+	int32 section = 2;
+	int64 gold = 3;
+	int64 coin = 4;
+	// 最高通关星
+	int32 passStarLv = 5;
+	// 最短通关时间
+	int64 passTopTime = 6;
+	// 武器包数量
+	int32 weapon = 7;
+	// 血瓶数量
+	int32 bloodBox = 8;
+	// 勋章数量
+	int32 frame = 9;
+		//是否展示每日签到
+		bool showSign = 10;
+	// 排行榜
+	repeated SectionRankPB ranks = 11;
+
+}
+
+
+//@comment("获得道具",323,"GotPropReq")
+message GotPropReq {
+	int32 propId = 1;						
+	int32 propNum = 2;
+	bool isshowUi = 3;	
+}
+
+//@comment("获得道具",324,"GotPropRsp")
+message GotPropRsp {
+	int32 propId = 1;
+	// 当前总数量
+	int32 propNum = 2;
+	// 当前添加量
+	int32 propAdd = 3;
+	// 是否显示弹窗
+	bool isshowUi = 4;	
+}
+//@comment("发送消耗道具",325,"ConsumePropReq")
+message ConsumePropReq {
+	//id
+	int32 propId = 1;
+	//数量（增量）
+	int32 propNum = 2;						
+}
+//@comment("返回消耗道具",326,"ConsumePropRsp")
+message ConsumePropRsp {
+	//id
+	int32 propId = 1;	
+	//成功/失败
+	bool success = 2;						
+}
+
+//@comment("道具列表",327,"GetPropListReq")
+message GetPropListReq {					
+}
+
+//@msgtype("道具","PropPB")
+message PropPB{
+	int32 itemId = 1;
+	int32 itemNum = 2;
+}
+
+//@comment("道具列表返回",328,"GetPropListRsp")
+message GetPropListRsp {
+	repeated PropPB props = 1;					
+}
+
+//@comment("请求存储道具",329,"UpdateProp")
+message UpdateProp {
+	map<int32,int32> items = 1;
+}
+
+//@comment("授权头像",331,"UserAllowReq")
+message UserAllowReq {
+	string userName = 1;
+	string avatar = 2;						
+}
+
+//@comment("授权头像然后",332,"UserAllowRsp")
+message UserAllowRsp {					
+}
+
+//@comment("签到信息",333,"GetSignReq")
+message GetSignReq {						
+}
+
+//@msgtype("签到","SignPB")
+message SignPB{
+	// 1-7天
+	int32 date = 1;
+	// 1.待签 2.可签 3.已签
+	int32 state = 2;
+	int32 itemId = 3;
+	int32 itemNum = 4;
+}
+
+//@comment("签到信息",334,"GetSignRsp")
+message GetSignRsp {
+	repeated SignPB signs = 1;
+}
+
+//@comment("签到",335,"SignReq")
+message SignReq {						
+}
+
+//@comment("签到",336,"SignRsp")
+message SignRsp {
+	repeated SignPB signs = 1;
+}

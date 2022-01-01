@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option java_package = "pb";
+option java_outer_classname = "ModelPb";
+
+
+
+message ChapterData{
+	repeated ChapterBoxDB boxes = 1;
+}
+
+message SectionData{
+	repeated SectionDB sections = 1;
+}
+
+message PropData{
+	repeated PropDB prop = 1;
+}
+
+message SectionRankData{
+	repeated SectionRankDB sectionRank = 1;
+}
+
+
+message SectionDB{
+	int32 chapterId = 1;
+	int32 sectionId = 2;						
+	bool pass = 3;						
+	int32 starLv = 4;
+	int32 passTime = 5;
+}
+
+message ChapterBoxDB{
+	int32 chapterId = 1;
+	bool box1 = 2;						
+	bool box2 = 3;						
+	bool box3 = 4;	
+}
+
+message PropDB{
+	int32 propId = 1;
+	int32 propNum = 2;
+	int32 state = 3;
+	int32 type = 4;					// 1.角色 2.道具
+}
+
+message SectionRankDB{
+	int32 id = 1;
+	int64 userId = 2;
+	string name = 3;
+	string protrait = 4;
+	int32 starLv = 5;
+	int32 passTime = 6;
+}
+
+
+
+
+
+
+
+
+
+
+

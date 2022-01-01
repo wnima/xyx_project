@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option java_package = "pb";
+option java_outer_classname = "ServerInternal";
+
+// 登陆传递
+message PBInterLoginRq{
+	string sessionId = 1;			// 客户端的sessionId
+	string deviceNo = 2;
+	string name = 3;
+	string pw = 4;
+	int32 gameType = 5;				// 游戏类型
+}
+
+// 登陆传递返回
+message PBInterLoginRsp{
+	string sessionId = 1;			// 客户端的sessionId
+	string msg = 2;					// 登陆消息提示
+	int64 userId = 3;				// 用户ID
+	bool ban = 4;					// 是否封号
+	string banMsg = 5;				// 封禁信息
+	bool white = 6;					// 是否是白名单,跳过维护状态测试游戏
+}
+
+// QQ 小游戏登陆
+message PBInterQQLoginRq{
+	string sessionId = 1;			// 客户端的sessionId
+	int32 platNo = 2;				
+	string platId = 3;				
+	string sessionKey = 4;		
+	string unionid = 5;
+	string userName = 6;
+	string avatar = 7;
+	int32 gameType = 8;				// 游戏类型
+}
+
+// QQ 小游戏登陆返回
+message PBInterQQLoginRsp{
+	string sessionId = 1;			// 客户端的sessionId
+	string msg = 2;					// 登陆消息提示
+	int64 userId = 3;				// 用户ID
+	bool ban = 4;					// 是否封号
+	string banMsg = 5;				// 封禁信息
+	bool white = 6;					// 是否是白名单,跳过维护状态测试游戏
+}
+
+

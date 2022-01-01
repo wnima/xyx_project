@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_package = "pb";
+option java_outer_classname = "EnumPb";
+
+enum DeviceType
+{
+	UNKNOWN_DEVICE_TYPE = 0;		// 未知
+	ANDROID = 1;					// 安卓
+	IOS = 2;						// 苹果
+	WIN_PC = 3;						// win
+	MAC_PC = 4;						// mac
+	WEB = 5;						// web
+}
+
+enum ResultState{
+	SUCCESS = 0;							// 成功
+	FAIL = 1;						// 失败
+}

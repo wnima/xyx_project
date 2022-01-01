@@ -1,0 +1,249 @@
+syntax = "proto3";
+option java_package = "pb";
+option java_outer_classname = "util";
+
+message PBBytes{
+	bytes data = 1;
+}
+
+message PBInt
+{
+	 int32 value = 1;
+}
+
+message PBLong
+{
+	 int64 value = 1;
+}
+
+message PBString
+{
+	 string value = 1;
+}
+
+message PBBool
+{
+	 bool value = 1;
+}
+
+message PBPairInt {
+	 int32 key = 1;
+	 int32 value = 2;
+}
+
+
+message PBPairLong
+{
+	 int64 key = 1;
+	 int64 value = 2;
+}
+
+message PBPairIntLong
+{
+	 int32 key = 1;
+	 int64 value = 2;
+}
+
+message PBPairLongInt {
+	 int64 key = 1;
+	 int32 value = 2;
+}
+
+message PBPairStringLong {
+	 string key = 1;
+	 int64 value = 2;
+}
+
+
+message PBPairString
+{
+	 string key = 1;
+	 string value = 2;
+}
+
+message PBPairIntString
+{
+	 int32 key = 1;
+	 string value = 2;
+}
+message PBPairIntStringList
+{
+	repeated PBPairIntString list = 1;
+}
+
+
+message PBTriple
+{
+	 int32 one = 1;
+	 int32 two = 2;
+	 int32 three = 3;
+}
+
+message PBTripleLong
+{
+	 int64 one = 1;
+	 int64 two = 2;
+	 int64 three = 3;
+}
+
+message PBTripleIntLong
+{
+	 int32 one = 1;
+	 int32 two = 2;
+	 int64 three = 3;
+}
+
+
+message PBTripleString
+{
+	 string one = 1;
+	 string two = 2;
+	 string three = 3;
+}
+
+message PBTripleIntString
+{
+	 int32 one = 1;
+	 string two = 2;
+	 string three = 3;
+}
+message PBLongStringLong
+{
+	 int64 one = 1;
+	 string two = 2;
+	 int64 three = 3;
+}
+
+message PBLongStringStringString
+{
+	 int64 one = 1;
+	 string two = 2;
+	 string three = 3;
+	 string four = 4;
+}
+
+message PBThreeLongInt {
+	 int64 param1 = 1;
+	 int32 param2 = 2;
+	 int32 param3 = 3;
+}
+
+message PBFourInt {
+	 int32 param1 = 1;
+	 int32 param2 = 2;
+	 int32 param3 = 3;
+	 int32 param4 = 4;
+}
+
+
+message PBFourLongInt {
+	 int64 param1 = 1;
+	 int32 param2 = 2;
+	 int32 param3 = 3;
+	 int32 param4 = 4;
+}
+
+message PBFourLong {
+	 int64 param1 = 1;
+	 int64 param2 = 2;
+	 int64 param3 = 3;
+	 int64 param4 = 4;
+}
+
+
+message PBIntList
+{
+	repeated int32 list = 1;
+}
+
+message PBLongList
+{
+	repeated int64 list = 1;
+}
+
+message PBPairList {
+	repeated PBPairInt list = 1;
+}
+
+message PBPairIntTriple
+{
+	 int32 key = 1;
+	 PBTriple value = 2;
+}
+
+// 数据结构组合 list<int64，int32>
+message PBListLongInt {
+	repeated PBPairLongInt pbList = 1;		// 多个数据组合
+}
+
+
+message PBPairIntIntList
+{
+	 int32 key  = 1;
+	 PBIntList value = 2;
+}
+
+
+message PBPairLongIntList
+{
+	 int32 key  = 1;
+	 PBIntList value = 2;
+}
+
+message PBPairLongList
+{
+	 int64 key = 1;
+	 PBPairListList value = 2;
+}
+
+
+message PBPairListList {
+	repeated PBPairList list = 1;
+}
+
+message PBListInt {
+	 int32 param1 = 1;
+	 int64 param2 = 2;
+	repeated int32 param3 = 3;
+}
+
+message PBStringList
+{
+	repeated string list = 1;
+}
+
+message PBTripleList
+{
+	repeated PBTriple list = 1;
+}
+
+message PBPairTripleList
+{
+	 int64 key = 1;
+	repeated PBTriple list = 2;
+}
+
+message PBFourIntList
+{
+	repeated PBFourInt list = 1;
+}
+
+message PBFourLongIntList
+{
+	repeated PBFourLongInt list = 1;
+}
+
+message PBFourIntLong
+{
+	 int32 param1 = 1;
+	 int64 param2 = 2;
+	 int64 param3 = 3;
+	 int64 param4 = 4;
+}
+
+message PBTripleIntStringList
+{
+	 int32 param1 = 1;
+	 int32 param2 = 2;
+	repeated string param3 = 3;
+}
